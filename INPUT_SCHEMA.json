@@ -10,8 +10,7 @@
 "type": "array",
 "editor": "stringList",
 "items": { "type": "string" },
-"uniqueItems": true,
-"prefill": []
+"uniqueItems": true
 },
 "sellerHandles": {
 "title": "Seller handles",
@@ -19,8 +18,7 @@
 "type": "array",
 "editor": "stringList",
 "items": { "type": "string" },
-"uniqueItems": true,
-"prefill": []
+"uniqueItems": true
 },
 "keywords": {
 "title": "Keywords",
@@ -28,8 +26,7 @@
 "type": "array",
 "editor": "stringList",
 "items": { "type": "string" },
-"uniqueItems": true,
-"prefill": []
+"uniqueItems": true
 },
 "categoryUrls": {
 "title": "Category or listing URLs",
@@ -37,8 +34,7 @@
 "type": "array",
 "editor": "stringList",
 "items": { "type": "string" },
-"uniqueItems": true,
-"prefill": []
+"uniqueItems": true
 },
 "region": {
 "title": "Region",
@@ -46,8 +42,7 @@
 "type": "string",
 "editor": "select",
 "default": "US",
-"enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"],
-"enumTitles": ["United States", "United Kingdom", "Germany", "Indonesia", "Thailand", "Philippines", "Vietnam", "Singapore", "Malaysia", "Other/Unspecified"]
+"enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"]
 },
 "maxProductsPerSeller": {
 "title": "Max products per seller",
@@ -78,20 +73,15 @@
 },
 "notify": {
 "title": "Notifications",
-"description": "Optional: JSON object with Slack and/or generic webhook for change alerts. Example: { "slackWebhookUrl": "...", "webhookUrl": "..." }",
+"description": "JSON with optional Slack and/or generic webhook for change alerts, e.g. { "slackWebhookUrl": "...", "webhookUrl": "..." }",
 "type": "object",
-"editor": "json",
-"prefill": {
-"slackWebhookUrl": "",
-"webhookUrl": ""
-}
+"editor": "json"
 },
 "proxyConfiguration": {
 "title": "Proxy configuration",
 "description": "Use Apify Proxy and select appropriate country group (e.g., RESIDENTIAL US).",
 "type": "object",
-"editor": "proxy",
-"prefill": { "useApifyProxy": true }
+"editor": "proxy"
 },
 "maxConcurrency": {
 "title": "Max concurrency",
