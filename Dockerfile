@@ -4,7 +4,7 @@ FROM apify/actor-node-puppeteer-chrome:20
 # Ensure working directory (already set in base image, but explicit is fine)
 
 WORKDIR /usr/src/app
-Copy package files (works with or without a lockfile)
+# Copy package files (works with or without a lockfile)
 
 COPY package*.json ./
 # Install dependencies as root (no BuildKit flags)
@@ -17,6 +17,6 @@ COPY . ./
 
 RUN chown -R myuser:myuser /usr/src/app
 USER myuser
-Run the actor
+# Run the actor
 
 CMD ["node", "main.js"]
