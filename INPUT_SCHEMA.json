@@ -1,108 +1,126 @@
 {
 "title": "TikTok Shop Product and Creator Tracker",
+"description": "Track TikTok Shop products by URL, seller, keyword, or category. Extract price, availability, seller info, and creator videos with change alerts.",
 "type": "object",
 "schemaVersion": 1,
 "properties": {
 "productUrls": {
 "title": "Product URLs",
+"description": "Direct TikTok Shop product URLs. Example: https://www.tiktok.com/shop/product/1234567890123456789",
 "type": "array",
-"description": "Direct TikTok Shop product URLs (best reliability). Example: https://www.tiktok.com/shop/product/1234567890123456789",
+"editor": "stringList",
 "items": { "type": "string" },
+"uniqueItems": true,
 "prefill": []
 },
 "sellerHandles": {
 "title": "Seller handles",
+"description": "TikTok seller or creator handles without @. The actor visits the profile and discovers Shop product links.",
 "type": "array",
-"description": "TikTok seller or creator handles without @. The actor will visit the profile and discover Shop product links.",
+"editor": "stringList",
 "items": { "type": "string" },
+"uniqueItems": true,
 "prefill": []
 },
 "keywords": {
 "title": "Keywords",
+"description": "Search keywords to discover product links (region-dependent).",
 "type": "array",
-"description": "Search keywords to discover product links. Discovery is best-effort and may vary by region.",
+"editor": "stringList",
 "items": { "type": "string" },
+"uniqueItems": true,
 "prefill": []
 },
 "categoryUrls": {
 "title": "Category or listing URLs",
-"type": "array",
 "description": "TikTok Shop category/listing pages to extract product links from.",
+"type": "array",
+"editor": "stringList",
 "items": { "type": "string" },
+"uniqueItems": true,
 "prefill": []
 },
 "region": {
 "title": "Region",
+"description": "Region hint (affects UI/currency/availability).",
 "type": "string",
-"description": "Region to target. Affects UI, availability, currency, and anti-bot behavior.",
+"editor": "select",
+"default": "US",
 "enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"],
-"default": "US"
+"enumTitles": ["United States", "United Kingdom", "Germany", "Indonesia", "Thailand", "Philippines", "Vietnam", "Singapore", "Malaysia", "Other/Unspecified"]
 },
 "maxProductsPerSeller": {
 "title": "Max products per seller",
+"description": "Limit discovered products per seller profile.",
 "type": "integer",
+"default": 50,
 "minimum": 1,
-"default": 50
+"unit": "items"
 },
 "maxCreatorsPerProduct": {
 "title": "Max creator videos per product",
+"description": "Limit of creator-linked videos to collect per product page.",
 "type": "integer",
+"default": 10,
 "minimum": 0,
-"default": 10
+"unit": "items"
 },
 "maxResultsPerKeyword": {
 "title": "Max products per keyword",
+"description": "Limit of product links to discover from each keyword search.",
 "type": "integer",
+"default": 20,
 "minimum": 0,
-"default": 20
+"unit": "items"
 },
 "captureScreenshots": {
 "title": "Capture screenshots",
+"description": "Store a full-page PNG per product in the key-value store.",
 "type": "boolean",
 "default": true
 },
 "notify": {
 "title": "Notifications",
+"description": "Optional: Provide Slack webhook URL and/or a generic webhook URL for change alerts (JSON object with keys slackWebhookUrl and webhookUrl).",
 "type": "object",
-"properties": {
-"slackWebhookUrl": {
-"title": "Slack webhook URL",
-"type": "string",
-"description": "Slack incoming webhook for change alerts."
-},
-"webhookUrl": {
-"title": "Generic webhook URL",
-"type": "string",
-"description": "POST JSON alerts here when price or stock changes."
-}
+"editor": "json",
+"prefill": {
+"slackWebhookUrl": "",
+"webhookUrl": ""
 }
 },
 "proxyConfiguration": {
 "title": "Proxy configuration",
+"description": "Use Apify Proxy and select appropriate country group (e.g., RESIDENTIAL US).",
 "type": "object",
 "editor": "proxy",
-"description": "Use Apify Proxy (recommended) and select appropriate country groups (e.g., US)."
+"prefill": { "useApifyProxy": true }
 },
 "maxConcurrency": {
 "title": "Max concurrency",
+"description": "Maximum number of parallel browser pages.",
 "type": "integer",
-"minimum": 1,
-"default": 10
+"default": 10,
+"minimum": 1
 },
 "requestHandlerTimeoutSecs": {
 "title": "Per-page timeout (secs)",
+"description": "Timeout for processing a single page.",
 "type": "integer",
+"default": 120,
 "minimum": 30,
-"default": 120
+"unit": "s"
 },
 "maxRequestsPerCrawl": {
 "title": "Max requests per crawl",
+"description": "Global limit of processed requests for the run.",
 "type": "integer",
-"minimum": 1,
-"default": 1000
+"default": 1000,
+"minimum": 1
 },
 "debug": {
 "title": "Debug mode",
+"description": "Increase log verbosity and keep extra diagnostics.",
 "type": "boolean",
 "default": false
 }
