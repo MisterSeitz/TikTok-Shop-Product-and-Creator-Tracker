@@ -13,19 +13,15 @@ const sha1 = (s) => crypto.createHash('sha1').update(String(s)).digest('hex');
 
 async function handleConsent(page) {
 try {
-// Click by text using Puppeteer-compatible logic
 const labels = ['accept', 'agree', 'allow', 'consent', 'ok'];
 await page.evaluate((words) => {
 const candidates = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'));
 for (const el of candidates) {
 const t = (el.textContent || el.value || '').trim().toLowerCase();
 if (!t) continue;
-if (words.some((w) => t.includes(w))) {
-el.click();
-}
+if (words.some((w) => t.includes(w))) el.click();
 }
 }, labels);
-// Try common selectors too
 const sels = [
 '[data-e2e="cookie-banner-accept"]',
 'button[data-cookie="accept"]',
@@ -130,7 +126,7 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
             const nd = JSON.stringify(nextData);
             const m = nd.match(/"productId"\s*:\s*"([^"]+)"/i);
             if (m?.[1]) out.product_id = out.product_id || m[1];
-            const titleMatch = nd.match(/"title"\s*:\s*"([^"]{3,200})"/i);
+            const titleMatch = nd.match(/"title"\s*:\s*"([^"]]{3,200})"/i);
             if (titleMatch?.[1] && !out.title) out.title = titleMatch[1];
         } catch {}
     }
@@ -336,16 +332,19 @@ const links = await page.evaluate((limit) => {
 const hrefs = Array.from(document.querySelectorAll('a[href]'))
 .map((a) => a.getAttribute('href'))
 .filter(Boolean);
-const productLike = [];
-for (const href of hrefs) {
-const abs = href.startsWith('http') ? href : (location.origin + href);
-if (/shop.tiktok.com/product//i.test(abs) || //product/[A-Za-z0-9-_]+/i.test(abs)) {
-productLike.push(abs.split('?')[0]);
-}
-}
-return Array.from(new Set(productLike)).slice(0, limit);
+
+    const productLike = [];
+    for (const href of hrefs) {
+        const abs = href.startsWith('http') ? href : (location.origin + href);
+        // Fixed regex literals: escape '.' and '/' correctly
+        if (/shop\.tiktok\.com\/product\//i.test(abs) || /\/product\/[A-Za-z0-9\-_]+/i.test(abs)) {
+            productLike.push(abs.split('?')[0]);
+        }
+    }
+    return Array.from(new Set(productLike)).slice(0, limit);
 }, maxLinks);
 return links;
+
 }
 
 async function enqueueMany(queue, urls, label, extra = {}) {
