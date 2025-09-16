@@ -1,21 +1,20 @@
 # Use Apify base image with Node 20, Chrome, and fonts
+
 FROM apify/actor-node-puppeteer-chrome:20
+Copy package files (works with or without a lockfile)
 
-# Copy package files first for better layer caching
-# Using --chown to ensure proper ownership for myuser
-COPY --chown=myuser:myuser package.json ./
-COPY --chown=myuser:myuser package-lock.json* ./
+COPY package*.json ./
+# Install dependencies as root, using cache to speed up builds
 
-# Install dependencies as root, then drop to myuser
-# Use npm ci if lockfile exists, otherwise npm install
-RUN --mount=type=cache,target=/root/.npm \
-    if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+RUN --mount=type=cache,target=/root/.npm 
+if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+Copy the rest of the actor source files
 
-# Copy the rest of the actor source files
-COPY --chown=myuser:myuser . ./
+COPY . ./
+# Fix ownership and drop privileges to the non-root user
 
-# Drop privileges to non-root user provided by the base image
+RUN chown -R myuser:myuser /usr/src/app
 USER myuser
+Run the actor
 
-# Run the actor
 CMD ["node", "main.js"]
