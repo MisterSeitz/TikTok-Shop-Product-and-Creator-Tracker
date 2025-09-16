@@ -54,24 +54,21 @@
 "description": "Limit discovered products per seller profile.",
 "type": "integer",
 "default": 50,
-"minimum": 1,
-"unit": "items"
+"minimum": 1
 },
 "maxCreatorsPerProduct": {
 "title": "Max creator videos per product",
 "description": "Limit of creator-linked videos to collect per product page.",
 "type": "integer",
 "default": 10,
-"minimum": 0,
-"unit": "items"
+"minimum": 0
 },
 "maxResultsPerKeyword": {
 "title": "Max products per keyword",
 "description": "Limit of product links to discover from each keyword search.",
 "type": "integer",
 "default": 20,
-"minimum": 0,
-"unit": "items"
+"minimum": 0
 },
 "captureScreenshots": {
 "title": "Capture screenshots",
@@ -81,7 +78,7 @@
 },
 "notify": {
 "title": "Notifications",
-"description": "Optional: Provide Slack webhook URL and/or a generic webhook URL for change alerts (JSON object with keys slackWebhookUrl and webhookUrl).",
+"description": "Optional: JSON object with Slack and/or generic webhook for change alerts. Example: { "slackWebhookUrl": "...", "webhookUrl": "..." }",
 "type": "object",
 "editor": "json",
 "prefill": {
@@ -108,8 +105,7 @@
 "description": "Timeout for processing a single page.",
 "type": "integer",
 "default": 120,
-"minimum": 30,
-"unit": "s"
+"minimum": 30
 },
 "maxRequestsPerCrawl": {
 "title": "Max requests per crawl",
