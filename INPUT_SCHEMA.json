@@ -38,7 +38,7 @@
 },
 "region": {
 "title": "Region",
-"description": "Region hint (affects UI/currency/availability).",
+"description": "Region hint (affects UI, currency, availability).",
 "type": "string",
 "editor": "select",
 "default": "US",
@@ -73,7 +73,7 @@
 },
 "notify": {
 "title": "Notifications",
-"description": "JSON with optional Slack and/or generic webhook for change alerts, e.g. { "slackWebhookUrl": "...", "webhookUrl": "..." }",
+"description": "JSON object with optional Slack and/or generic webhook URLs for change alerts. Keys: slackWebhookUrl, webhookUrl. Example: { slackWebhookUrl: '...', webhookUrl: '...' }",
 "type": "object",
 "editor": "json"
 },
