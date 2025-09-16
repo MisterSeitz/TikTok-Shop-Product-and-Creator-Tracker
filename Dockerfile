@@ -1,19 +1,19 @@
 FROM apify/actor-node:20 AS build
 WORKDIR /usr/src/app
-Install deps (ci if lockfile exists, otherwise install)
+Copy and install deps
 
 COPY package*.json ./
 RUN if [ -f package-lock.json ]; then npm --quiet ci; else npm --quiet install --no-audit --no-fund; fi
-Copy the rest of the project
+Copy app sources
 
 COPY . ./
-Optional: prune dev deps for smaller image (tolerate missing lockfile)
+# Optional: prune dev deps for smaller image (best-effort)
 
 RUN npm prune --omit=dev --no-audit --no-fund || true
-Ensure this stage can be used as the final image if Apify targets it
+# Provide a CMD so targeting this stage still runs
 
 CMD ["node", "main.js"]
-Final runtime stage (used if no specific build stage is targeted)
+# Final stage (used if no build stage targeted)
 
 FROM apify/actor-node:20 AS final
 WORKDIR /usr/src/app
