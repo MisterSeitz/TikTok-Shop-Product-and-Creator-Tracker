@@ -2,7 +2,6 @@
 
 const { Actor } = require('apify');
 const { PuppeteerCrawler, log } = require('crawlee');
-const { gotScraping } = require('got-scraping');
 const crypto = require('crypto');
 
 const DEFAULT_MAX_ITEMS = 1000;
@@ -10,6 +9,16 @@ const DEFAULT_CONCURRENCY = 5;
 
 const nowIso = () => new Date().toISOString();
 const sha1 = (s) => crypto.createHash('sha1').update(String(s)).digest('hex');
+
+// Lazy-load got-scraping so it works with ESM-only versions on Node 20
+let gotScrapingCached = null;
+async function getGotScraping() {
+if (!gotScrapingCached) {
+const mod = await import('got-scraping');
+gotScrapingCached = mod.gotScraping;
+}
+return gotScrapingCached;
+}
 
 async function handleConsent(page) {
 try {
@@ -126,7 +135,7 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
             const nd = JSON.stringify(nextData);
             const m = nd.match(/"productId"\s*:\s*"([^"]+)"/i);
             if (m?.[1]) out.product_id = out.product_id || m[1];
-            const titleMatch = nd.match(/"title"\s*:\s*"([^"]]{3,200})"/i);
+            const titleMatch = nd.match(/"title"\s*:\s*"([^"]{3,200})"/i);
             if (titleMatch?.[1] && !out.title) out.title = titleMatch[1];
         } catch {}
     }
@@ -298,6 +307,7 @@ const summary = [
 
 try {
     if (webhookUrl) {
+        const gotScraping = await getGotScraping();
         await gotScraping({
             url: webhookUrl,
             method: 'POST',
@@ -312,6 +322,7 @@ try {
 
 try {
     if (slackWebhookUrl) {
+        const gotScraping = await getGotScraping();
         await gotScraping({
             url: slackWebhookUrl,
             method: 'POST',
@@ -336,7 +347,7 @@ const hrefs = Array.from(document.querySelectorAll('a[href]'))
     const productLike = [];
     for (const href of hrefs) {
         const abs = href.startsWith('http') ? href : (location.origin + href);
-        // Fixed regex literals: escape '.' and '/' correctly
+        // Product URL heuristics
         if (/shop\.tiktok\.com\/product\//i.test(abs) || /\/product\/[A-Za-z0-9\-_]+/i.test(abs)) {
             productLike.push(abs.split('?')[0]);
         }
