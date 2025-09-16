@@ -12,7 +12,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 # Install dependencies without multiline 'if' to avoid parser issues
 
-RUN npm config set fund false && npm config set audit false && (test -f package-lock.json && npm ci || npm install --no-audit --no-fund)
+RUN npm config set fund false && npm config set audit false && if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
 # Copy the rest of the source
 
 COPY . ./
