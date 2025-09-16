@@ -1,34 +1,21 @@
+# Use Apify base image with Node 20, Chrome, and fonts
 FROM apify/actor-node-puppeteer-chrome:20
 
-WORKDIR /usr/src/app
-Copy only package files first (better layer caching) and give ownership to myuser
+# Copy package files first for better layer caching
+# Using --chown to ensure proper ownership for myuser
+COPY --chown=myuser:myuser package.json ./
+COPY --chown=myuser:myuser package-lock.json* ./
 
-COPY --chown=myuser:myuser package*.json ./
-# Switch to myuser (default in this image) and install deps
+# Install dependencies as root, then drop to myuser
+# Use npm ci if lockfile exists, otherwise npm install
+RUN --mount=type=cache,target=/root/.npm \
+    if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
 
-USER myuser
-RUN if [ -f package-lock.json ]; then npm --quiet ci; else npm --quiet install --no-audit --no-fund; fi
-Copy the rest of the project, still owned by myuser
-
+# Copy the rest of the actor source files
 COPY --chown=myuser:myuser . ./
-Run the actor
 
-CMD ["node", "main.js"]
-
-# Option B — install as root, then drop privileges
-FROM apify/actor-node-puppeteer-chrome:20
-
-WORKDIR /usr/src/app
-# Install deps as root (no permissions issues)
-
-USER root
-COPY package*.json ./
-RUN if [ -f package-lock.json ]; then npm --quiet ci; else npm --quiet install --no-audit --no-fund; fi
-Copy sources and give everything to myuser
-
-COPY . ./
-RUN chown -R myuser:myuser /usr/src/app
-# Drop to non-root for runtime
-
+# Drop privileges to non-root user provided by the base image
 USER myuser
+
+# Run the actor
 CMD ["node", "main.js"]
