@@ -15,6 +15,6 @@ COPY . ./
 
 RUN chown -R myuser:myuser /usr/src/app
 USER myuser
-Run the actor
+# Run the actor
 
 CMD ["node", "main.js"]
