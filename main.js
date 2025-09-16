@@ -13,21 +13,28 @@ const sha1 = (s) => crypto.createHash('sha1').update(String(s)).digest('hex');
 
 async function handleConsent(page) {
 try {
-const buttons = [
-'button:has-text("Accept")',
-'button:has-text("I agree")',
-'button:has-text("Agree")',
-'button:has-text("Allow")',
+// Click by text using Puppeteer-compatible logic
+const labels = ['accept', 'agree', 'allow', 'consent', 'ok'];
+await page.evaluate((words) => {
+const candidates = Array.from(document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"]'));
+for (const el of candidates) {
+const t = (el.textContent || el.value || '').trim().toLowerCase();
+if (!t) continue;
+if (words.some((w) => t.includes(w))) {
+el.click();
+}
+}
+}, labels);
+// Try common selectors too
+const sels = [
 '[data-e2e="cookie-banner-accept"]',
 'button[data-cookie="accept"]',
 ];
-for (const sel of buttons) {
+for (const sel of sels) {
 const btn = await page.$(sel);
-if (btn) {
-await btn.click({ delay: 50 });
+if (btn) await btn.click({ delay: 40 });
+}
 await page.waitForTimeout(400);
-}
-}
 } catch {}
 }
 
@@ -79,9 +86,13 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
         const offers = productLD.offers || productLD.aggregateOffer || null;
         const normOffer = Array.isArray(offers) ? offers[0] : offers;
         if (normOffer) {
-            out.price.current = Number(normOffer.price) || out.price.current;
+            const p = Number(normOffer.price);
+            out.price.current = Number.isFinite(p) ? p : out.price.current;
             out.price.currency = normOffer.priceCurrency || out.price.currency;
-            if (normOffer.priceSpecification?.price) out.price.original = Number(normOffer.priceSpecification.price);
+            if (normOffer.priceSpecification?.price) {
+                const op = Number(normOffer.priceSpecification.price);
+                out.price.original = Number.isFinite(op) ? op : out.price.original;
+            }
             const avail = normOffer.availability || normOffer.availabilityStarts || null;
             if (typeof avail === 'string') {
                 const a = avail.toLowerCase();
@@ -94,14 +105,20 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
             else if (typeof productLD.image === 'string') out.images = [productLD.image];
         }
         if (productLD.aggregateRating) {
-            out.rating = Number(productLD.aggregateRating.ratingValue) || null;
-            out.review_count = Number(productLD.aggregateRating.reviewCount || productLD.aggregateRating.ratingCount) || null;
+            const rv = Number(productLD.aggregateRating.ratingValue);
+            out.rating = Number.isFinite(rv) ? rv : out.rating;
+            const rc = Number(productLD.aggregateRating.reviewCount || productLD.aggregateRating.ratingCount);
+            out.review_count = Number.isFinite(rc) ? rc : out.review_count;
         }
         if (productLD.sku) out.product_id = String(productLD.sku);
         if (!out.product_id && productLD.productID) out.product_id = String(productLD.productID);
         if (productLD.seller) {
             if (typeof productLD.seller === 'string') out.seller.name = out.seller.name || productLD.seller;
             else if (productLD.seller?.name) out.seller.name = out.seller.name || productLD.seller.name;
+        }
+        if (productLD.brand) {
+            if (typeof productLD.brand === 'string') out.seller.name = out.seller.name || productLD.brand;
+            else if (productLD.brand?.name) out.seller.name = out.seller.name || productLD.brand.name;
         }
     }
 
@@ -127,8 +144,10 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
                 out.description = out.description || v.description || null;
                 out.product_id = out.product_id || v.id || v.productId || null;
                 if (v.price) {
-                    out.price.current = out.price.current || Number(v.price.current || v.price) || out.price.current;
-                    out.price.original = out.price.original || Number(v.price.original) || out.price.original;
+                    const cp = Number(v.price.current || v.price);
+                    if (Number.isFinite(cp)) out.price.current = out.price.current ?? cp;
+                    const op = Number(v.price.original);
+                    if (Number.isFinite(op)) out.price.original = out.price.original ?? op;
                     out.price.currency = out.price.currency || v.price.currency || out.price.currency;
                 }
                 const sellerObj = v.seller || v.shop;
@@ -255,7 +274,7 @@ if (prevPrice !== currPrice && currPrice != null) {
 changes.price = { from: prevPrice, to: currPrice };
 }
 const prevAvail = prev.availability ?? null;
-const currAvail = curr.availability ?? null.
+const currAvail = curr.availability ?? null;
 if (prevAvail !== currAvail && currAvail != null) {
 changes.availability = { from: prevAvail, to: currAvail };
 }
