@@ -1,0 +1,10 @@
+{
+  "name": "tiktok-shop-product-and-creator-tracker",
+  "title": "TikTok Shop Product and Creator Tracker",
+  "description": "Tracks TikTok Shop product metadata, price history, availability, seller info, and creator linkage with change alerts.",
+  "type": "javascript",
+  "version": "0.1",
+  "buildTag": "latest",
+  "input": "./INPUT_SCHEMA.json",
+  "dockerfile": "./Dockerfile"
+}

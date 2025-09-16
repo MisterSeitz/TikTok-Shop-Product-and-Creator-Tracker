@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log*
+.apify_storage
+apify_storage
+.DS_Store
+.env
+dist
+tmp
