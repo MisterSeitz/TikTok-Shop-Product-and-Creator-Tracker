@@ -58,6 +58,7 @@ creators: [],
 };
 const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null; } };
 
+    // JSON-LD
     const ldNodes = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
     let productLD = null;
     for (const s of ldNodes) {
@@ -104,6 +105,7 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
         }
     }
 
+    // Next.js state
     const nextScript = document.querySelector('#__NEXT_DATA__');
     const nextData = nextScript ? safeJsonParse(nextScript.textContent || '') : (window.__NEXT_DATA__ || null);
     if (nextData) {
@@ -116,6 +118,7 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
         } catch {}
     }
 
+    // Apollo/SIGI
     const apollo = window.__APOLLO_STATE__ || null;
     if (apollo && typeof apollo === 'object') {
         for (const v of Object.values(apollo)) {
@@ -144,7 +147,6 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
             }
         }
     }
-
     const sigi = window.SIGI_STATE || null;
     if (sigi && typeof sigi === 'object') {
         try {
@@ -154,6 +156,7 @@ const safeJsonParse = (s) => { try { return JSON.parse(s); } catch { return null
         } catch {}
     }
 
+    // DOM fallbacks
     if (!out.title) {
         const h1 = document.querySelector('h1');
         out.title = h1 ? h1.textContent.trim() : null;
@@ -252,7 +255,7 @@ if (prevPrice !== currPrice && currPrice != null) {
 changes.price = { from: prevPrice, to: currPrice };
 }
 const prevAvail = prev.availability ?? null;
-const currAvail = curr.availability ?? null;
+const currAvail = curr.availability ?? null.
 if (prevAvail !== currAvail && currAvail != null) {
 changes.availability = { from: prevAvail, to: currAvail };
 }
