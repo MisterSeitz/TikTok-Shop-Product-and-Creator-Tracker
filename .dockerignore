@@ -1,9 +1,7 @@
 node_modules
-npm-debug.log*
 .apify_storage
 apify_storage
 .git
 .gitignore
 .DS_Store
-dist
-tmp
+npm-debug.log*
