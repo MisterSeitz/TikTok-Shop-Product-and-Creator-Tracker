@@ -1,7 +1,10 @@
 node_modules
-.apify_storage
+npm-debug.log
+.DS_Store
 apify_storage
 .git
 .gitignore
-.DS_Store
-npm-debug.log*
+README.md
+LICENSE
+*.log
+*.zip
