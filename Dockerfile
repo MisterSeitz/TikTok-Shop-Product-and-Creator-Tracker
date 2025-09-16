@@ -8,7 +8,7 @@ COPY package*.json ./
 
 RUN --mount=type=cache,target=/root/.npm 
 if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
-Copy the rest of the actor source files
+# Copy the rest of the actor source files
 
 COPY . ./
 # Fix ownership and drop privileges to the non-root user
