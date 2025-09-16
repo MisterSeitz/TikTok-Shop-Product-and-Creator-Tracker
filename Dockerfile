@@ -1,23 +1,19 @@
 # Use Apify base image with Node 20, Chrome, and fonts
 
 FROM apify/actor-node-puppeteer-chrome:20
-# Work in app dir
+# Ensure working directory (already set in base image, but explicit is fine)
 
 WORKDIR /usr/src/app
-# Install deps as root to avoid EACCES
-
-USER root
-# Copy package files (supports with/without lockfile)
+# Copy package files (works with or without a lockfile)
 
 COPY package*.json ./
-# Install dependencies
+# Install dependencies as root (no BuildKit flags)
 
-RUN npm config set fund false && npm config set audit false && 
-if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
-# Copy the rest of the source
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+# Copy the rest of the actor source files
 
 COPY . ./
-Fix ownership and drop to non-root for runtime
+# Fix ownership and drop privileges to the non-root user
 
 RUN chown -R myuser:myuser /usr/src/app
 USER myuser
