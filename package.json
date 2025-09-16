@@ -1,6 +1,6 @@
 {
 "name": "tiktok-shop-product-tracker",
-"version": "1.0.2",
+"version": "1.0.3",
 "description": "Apify actor that tracks TikTok Shop products with price/stock/rating changes and optional notifications.",
 "type": "commonjs",
 "main": "main.js",
@@ -8,7 +8,7 @@
 "start": "node main.js",
 "test-run": "APIFY_LOCAL_STORAGE_DIR=./apify_storage node main.js"
 },
-"author": "Byseitz",
+"author": "Your Name",
 "license": "MIT",
 "engines": {
 "node": ">=20"
