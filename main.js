@@ -624,28 +624,3 @@ Actor.main(async () => {
 
     log.info(`Done. Items pushed: ${totalPushed}`);
 });
-
-
-File: package.json
---------------------------------
-{
-  "name": "tiktok-shop-product-tracker",
-  "version": "1.0.0",
-  "description": "Apify actor that tracks TikTok Shop products with price/stock/rating changes and optional notifications.",
-  "type": "commonjs",
-  "main": "main.js",
-  "scripts": {
-    "start": "node main.js",
-    "test-run": "APIFY_LOCAL_STORAGE_DIR=./apify_storage node main.js"
-  },
-  "author": "Your Name",
-  "license": "MIT",
-  "engines": {
-    "node": ">=20"
-  },
-  "dependencies": {
-    "apify": "^3.1.9",
-    "crawlee": "^3.9.2",
-    "got-scraping": "^4.0.3"
-  }
-}
