@@ -1,115 +1,111 @@
 {
-  "title": "TikTok Shop Product and Creator Tracker",
-  "type": "object",
-  "schemaVersion": 1,
-  "properties": {
-    "productUrls": {
-      "title": "Product URLs",
-      "type": "array",
-      "description": "Direct TikTok Shop product URLs (best reliability). Example: https://www.tiktok.com/shop/product/1234567890123456789",
-      "editor": "array",
-      "items": { "type": "string" },
-      "prefill": []
-    },
-    "sellerHandles": {
-      "title": "Seller handles",
-      "type": "array",
-      "description": "TikTok seller or creator handles without @. The actor will visit the profile and discover Shop product links.",
-      "editor": "array",
-      "items": { "type": "string" },
-      "prefill": []
-    },
-    "keywords": {
-      "title": "Keywords",
-      "type": "array",
-      "description": "Search keywords to discover product links. Discovery is best-effort and may vary by region.",
-      "editor": "array",
-      "items": { "type": "string" },
-      "prefill": []
-    },
-    "categoryUrls": {
-      "title": "Category or listing URLs",
-      "type": "array",
-      "description": "TikTok Shop category/listing pages to extract product links from.",
-      "editor": "array",
-      "items": { "type": "string" },
-      "prefill": []
-    },
-    "region": {
-      "title": "Region",
-      "type": "string",
-      "description": "Region to target. Affects UI, availability, currency, and anti-bot behavior.",
-      "enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"],
-      "default": "US"
-    },
-    "maxProductsPerSeller": {
-      "title": "Max products per seller",
-      "type": "integer",
-      "minimum": 1,
-      "default": 50
-    },
-    "maxCreatorsPerProduct": {
-      "title": "Max creator videos per product",
-      "type": "integer",
-      "minimum": 0,
-      "default": 10
-    },
-    "maxResultsPerKeyword": {
-      "title": "Max products per keyword",
-      "type": "integer",
-      "minimum": 0,
-      "default": 20
-    },
-    "captureScreenshots": {
-      "title": "Capture screenshots",
-      "type": "boolean",
-      "default": true
-    },
-    "notify": {
-      "title": "Notifications",
-      "type": "object",
-      "properties": {
-        "slackWebhookUrl": {
-          "title": "Slack webhook URL",
-          "type": "string",
-          "description": "Slack incoming webhook for change alerts."
-        },
-        "webhookUrl": {
-          "title": "Generic webhook URL",
-          "type": "string",
-          "description": "POST JSON alerts here when price or stock changes."
-        }
-      }
-    },
-    "proxyConfiguration": {
-      "title": "Proxy configuration",
-      "type": "object",
-      "editor": "proxy",
-      "description": "Use Apify Proxy (recommended) and select appropriate country groups (e.g., US)."
-    },
-    "maxConcurrency": {
-      "title": "Max concurrency",
-      "type": "integer",
-      "minimum": 1,
-      "default": 10
-    },
-    "requestHandlerTimeoutSecs": {
-      "title": "Per-page timeout (secs)",
-      "type": "integer",
-      "minimum": 30,
-      "default": 120
-    },
-    "maxRequestsPerCrawl": {
-      "title": "Max requests per crawl",
-      "type": "integer",
-      "minimum": 1,
-      "default": 1000
-    },
-    "debug": {
-      "title": "Debug mode",
-      "type": "boolean",
-      "default": false
-    }
-  },
-  "required": []
+"title": "TikTok Shop Product and Creator Tracker",
+"type": "object",
+"schemaVersion": 1,
+"properties": {
+"productUrls": {
+"title": "Product URLs",
+"type": "array",
+"description": "Direct TikTok Shop product URLs (best reliability). Example: https://www.tiktok.com/shop/product/1234567890123456789",
+"items": { "type": "string" },
+"prefill": []
+},
+"sellerHandles": {
+"title": "Seller handles",
+"type": "array",
+"description": "TikTok seller or creator handles without @. The actor will visit the profile and discover Shop product links.",
+"items": { "type": "string" },
+"prefill": []
+},
+"keywords": {
+"title": "Keywords",
+"type": "array",
+"description": "Search keywords to discover product links. Discovery is best-effort and may vary by region.",
+"items": { "type": "string" },
+"prefill": []
+},
+"categoryUrls": {
+"title": "Category or listing URLs",
+"type": "array",
+"description": "TikTok Shop category/listing pages to extract product links from.",
+"items": { "type": "string" },
+"prefill": []
+},
+"region": {
+"title": "Region",
+"type": "string",
+"description": "Region to target. Affects UI, availability, currency, and anti-bot behavior.",
+"enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"],
+"default": "US"
+},
+"maxProductsPerSeller": {
+"title": "Max products per seller",
+"type": "integer",
+"minimum": 1,
+"default": 50
+},
+"maxCreatorsPerProduct": {
+"title": "Max creator videos per product",
+"type": "integer",
+"minimum": 0,
+"default": 10
+},
+"maxResultsPerKeyword": {
+"title": "Max products per keyword",
+"type": "integer",
+"minimum": 0,
+"default": 20
+},
+"captureScreenshots": {
+"title": "Capture screenshots",
+"type": "boolean",
+"default": true
+},
+"notify": {
+"title": "Notifications",
+"type": "object",
+"properties": {
+"slackWebhookUrl": {
+"title": "Slack webhook URL",
+"type": "string",
+"description": "Slack incoming webhook for change alerts."
+},
+"webhookUrl": {
+"title": "Generic webhook URL",
+"type": "string",
+"description": "POST JSON alerts here when price or stock changes."
+}
+}
+},
+"proxyConfiguration": {
+"title": "Proxy configuration",
+"type": "object",
+"editor": "proxy",
+"description": "Use Apify Proxy (recommended) and select appropriate country groups (e.g., US)."
+},
+"maxConcurrency": {
+"title": "Max concurrency",
+"type": "integer",
+"minimum": 1,
+"default": 10
+},
+"requestHandlerTimeoutSecs": {
+"title": "Per-page timeout (secs)",
+"type": "integer",
+"minimum": 30,
+"default": 120
+},
+"maxRequestsPerCrawl": {
+"title": "Max requests per crawl",
+"type": "integer",
+"minimum": 1,
+"default": 1000
+},
+"debug": {
+"title": "Debug mode",
+"type": "boolean",
+"default": false
+}
+},
+"required": []
 }
