@@ -1,14 +1,13 @@
-# Apify recommended Node base image
-FROM apify/actor-node:20
+Copy all files
 
-# Copy all files
 COPY . ./
+Install dependencies
+If package-lock.json exists, use reproducible 'ci'; otherwise fall back to 'install'
 
-# Install dependencies
-RUN npm --quiet ci
+RUN if [ -f package-lock.json ]; then npm --quiet ci; else npm --quiet install --no-audit --no-fund; fi
+Set working dir
 
-# Set up default working dir
 WORKDIR /usr/src/app
+Run the actor
 
-# Run the actor
 CMD ["node", "main.js"]
