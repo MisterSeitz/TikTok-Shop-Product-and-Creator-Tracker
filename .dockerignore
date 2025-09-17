@@ -1,10 +1,62 @@
-node_modules
-npm-debug.log
-.DS_Store
-apify_storage
+# Git
 .git
 .gitignore
-README.md
-LICENSE
+.dockerignore
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg-info
+.eggs
+dist
+build
+pip-wheel-metadata
+
+# Virtual environments
+.venv
+venv
+env
+env.*
+.venv*/
+
+# Editor/IDE settings
+.vscode
+.idea
+
+# Tests and coverage
+.pytest_cache
+.coverage
+coverage
+htmlcov
+
+# Logs
+logs
 *.log
-*.zip
+
+# Caches
+.cache
+.mypy_cache
+.pytype
+__pypackages__
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Apify local storage and datasets
+apify_storage
+datasets
+key_value_stores
+request_queues
+storage
+
+# Playwright caches (local)
+ms-playwright
+.playwright
+
+# Node/JS (if used locally for schema validation)
+node_modules
+npm-debug.log*
+yarn-error.log
