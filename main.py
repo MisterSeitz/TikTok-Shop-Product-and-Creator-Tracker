@@ -7,6 +7,7 @@ from typing import Any, Dict
 from apify import Actor, ProxyConfiguration
 from apify.storages import KeyValueStore
 from apify.request_queue import RequestQueue
+from apify_client.storages import RequestQueue
 
 # Your constants or labels
 PRODUCT_LABEL = "PRODUCT"
