@@ -804,10 +804,6 @@ async def worker_loop(
                     kv_store,
                     log,
                 )
-            await request_queue.mark_request_handled(req)
-        except Exception as e:
-            log.warning(f"Worker {worker_id}: error processing {req.get('url')} — {e}")
-            await request_queue.reclaim_request(req)
 
 
 async def main() -> None:
