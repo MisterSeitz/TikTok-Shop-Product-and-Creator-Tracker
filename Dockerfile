@@ -10,8 +10,7 @@ RUN useradd -m appuser
 
 # Install Python dependencies
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -U pip \
- && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -U pip \ && pip install --no-cache-dir -r requirements.txt
 
 # Copy your source code into the container
 COPY . ./
