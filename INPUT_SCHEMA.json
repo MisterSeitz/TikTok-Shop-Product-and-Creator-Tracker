@@ -1,113 +1,198 @@
 {
-"title": "TikTok Shop Product and Creator Tracker",
-"description": "Track TikTok Shop products by URL, seller, keyword, or category. Extract price, availability, seller info, and creator videos with change alerts.",
+"title": "TikTok Shop Product Tracker",
+"description": "Track TikTok Shop products for metadata, price, availability, ratings, images, and creator-linked videos. Detect changes across runs and optionally send notifications.",
 "type": "object",
 "schemaVersion": 1,
 "properties": {
 "productUrls": {
 "title": "Product URLs",
-"description": "Direct TikTok Shop product URLs. Example: https://www.tiktok.com/shop/product/1234567890123456789",
 "type": "array",
+"description": "List of TikTok Shop product detail URLs to scrape.",
 "editor": "stringList",
-"items": { "type": "string" },
-"uniqueItems": true
+"items": {
+"type": "string"
+},
+"default": []
 },
 "sellerHandles": {
 "title": "Seller handles",
-"description": "TikTok seller or creator handles without @. The actor visits the profile and discovers Shop product links.",
 "type": "array",
+"description": "TikTok Shop seller handles or shop usernames. The actor will discover products from these sellers.",
 "editor": "stringList",
-"items": { "type": "string" },
-"uniqueItems": true
+"items": {
+"type": "string"
+},
+"default": []
 },
 "keywords": {
 "title": "Keywords",
-"description": "Search keywords to discover product links (region-dependent).",
 "type": "array",
+"description": "Search keywords to find products in TikTok Shop.",
 "editor": "stringList",
-"items": { "type": "string" },
-"uniqueItems": true
+"items": {
+"type": "string"
+},
+"default": []
 },
 "categoryUrls": {
-"title": "Category or listing URLs",
-"description": "TikTok Shop category/listing pages to extract product links from.",
+"title": "Category URLs",
 "type": "array",
+"description": "TikTok Shop category or listing URLs to discover products.",
 "editor": "stringList",
-"items": { "type": "string" },
-"uniqueItems": true
+"items": {
+"type": "string"
+},
+"default": []
 },
 "region": {
 "title": "Region",
-"description": "Region hint (affects UI, currency, availability).",
 "type": "string",
+"description": "Preferred TikTok Shop market locale. Used for Accept-Language and regional hints.",
 "editor": "select",
-"default": "US",
-"enum": ["US", "UK", "DE", "ID", "TH", "PH", "VN", "SG", "MY", "Other"]
+"enum": [
+"US",
+"GB",
+"SG",
+"MY",
+"TH",
+"VN",
+"PH",
+"ID"
+],
+"enumTitles": [
+"United States",
+"United Kingdom",
+"Singapore",
+"Malaysia",
+"Thailand",
+"Vietnam",
+"Philippines",
+"Indonesia"
+],
+"default": "US"
+},
+"acceptLanguage": {
+"title": "Accept-Language header",
+"type": "string",
+"description": "Custom Accept-Language header to hint region and language in the browser context.",
+"default": "en-US,en;q=0.9"
+},
+"limits": {
+"title": "Limits",
+"type": "object",
+"description": "Optional limits for discovery and scraping.",
+"editor": "json",
+"properties": {
+"maxProducts": {
+"title": "Max products total",
+"type": "integer",
+"description": "Stop after collecting this many products overall. Leave empty for unlimited.",
+"minimum": 1
 },
 "maxProductsPerSeller": {
 "title": "Max products per seller",
-"description": "Limit discovered products per seller profile.",
 "type": "integer",
-"default": 50,
+"description": "Limit products discovered per seller.",
 "minimum": 1
 },
-"maxCreatorsPerProduct": {
-"title": "Max creator videos per product",
-"description": "Limit of creator-linked videos to collect per product page.",
+"maxProductsPerCategory": {
+"title": "Max products per category",
 "type": "integer",
-"default": 10,
-"minimum": 0
+"description": "Limit products discovered per category URL.",
+"minimum": 1
+}
 },
-"maxResultsPerKeyword": {
-"title": "Max products per keyword",
-"description": "Limit of product links to discover from each keyword search.",
-"type": "integer",
-"default": 20,
-"minimum": 0
-},
-"captureScreenshots": {
-"title": "Capture screenshots",
-"description": "Store a full-page PNG per product in the key-value store.",
-"type": "boolean",
-"default": true
-},
-"notify": {
-"title": "Notifications",
-"description": "JSON object with optional Slack and/or generic webhook URLs for change alerts. Keys: slackWebhookUrl, webhookUrl. Example: { slackWebhookUrl: '...', webhookUrl: '...' }",
-"type": "object",
-"editor": "json"
-},
-"proxyConfiguration": {
-"title": "Proxy configuration",
-"description": "Use Apify Proxy and select appropriate country group (e.g., RESIDENTIAL US).",
-"type": "object",
-"editor": "proxy"
+"default": {}
 },
 "maxConcurrency": {
 "title": "Max concurrency",
-"description": "Maximum number of parallel browser pages.",
 "type": "integer",
-"default": 10,
-"minimum": 1
+"description": "Maximum number of concurrent product page tasks.",
+"default": 5,
+"minimum": 1,
+"maximum": 50
 },
-"requestHandlerTimeoutSecs": {
-"title": "Per-page timeout (secs)",
-"description": "Timeout for processing a single page.",
-"type": "integer",
-"default": 120,
-"minimum": 30
+"timeouts": {
+"title": "Timeouts",
+"type": "object",
+"description": "Navigation and request timeouts in seconds.",
+"editor": "json",
+"properties": {
+"navigationTimeoutSecs": {
+"title": "Navigation timeout (secs)",
+"type": "number",
+"default": 25,
+"minimum": 5,
+"maximum": 120
 },
-"maxRequestsPerCrawl": {
-"title": "Max requests per crawl",
-"description": "Global limit of processed requests for the run.",
-"type": "integer",
-"default": 1000,
-"minimum": 1
+"requestTimeoutSecs": {
+"title": "Request timeout (secs)",
+"type": "number",
+"default": 30,
+"minimum": 5,
+"maximum": 120
+}
+},
+"default": {
+"navigationTimeoutSecs": 25,
+"requestTimeoutSecs": 30
+}
+},
+"includeCreatorVideos": {
+"title": "Include creator-linked videos",
+"type": "boolean",
+"description": "Attempt to collect creator-linked videos and basic engagement stats.",
+"default": true
+},
+"captureScreenshots": {
+"title": "Capture screenshots",
+"type": "boolean",
+"description": "Capture a full-page product screenshot and save to the default key-value store.",
+"default": false
+},
+"notify": {
+"title": "Notifications",
+"type": "object",
+"description": "Optional Slack or generic webhook notifications on price or availability changes.",
+"editor": "json",
+"properties": {
+"enabled": {
+"title": "Enable notifications",
+"type": "boolean",
+"default": true
+},
+"onlyOnChange": {
+"title": "Only on change",
+"type": "boolean",
+"description": "Send notifications only when price or availability changes. If false, send a summary for each run.",
+"default": true
+},
+"slackWebhookUrl": {
+"title": "Slack webhook URL",
+"type": "string",
+"description": "Slack incoming webhook URL for alerts."
+},
+"webhookUrl": {
+"title": "Generic webhook URL",
+"type": "string",
+"description": "Custom webhook URL to receive JSON payloads with detected changes."
+}
+},
+"default": {
+"enabled": true,
+"onlyOnChange": true
+}
+},
+"proxyConfiguration": {
+"title": "Proxy configuration",
+"type": "object",
+"description": "Use Apify Proxy or custom proxies. Regional proxies are recommended to match the selected region.",
+"editor": "proxy"
 },
 "debug": {
 "title": "Debug mode",
-"description": "Increase log verbosity and keep extra diagnostics.",
 "type": "boolean",
+"description": "Enable verbose logging and keep more data in the default key-value store.",
 "default": false
 }
 },
