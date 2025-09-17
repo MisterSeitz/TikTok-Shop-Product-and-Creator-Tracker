@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 
 # Use system Chrome from the image and skip Chromium download for Puppeteer
 ENV PUPPETEER_SKIP_DOWNLOAD=true 
-PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
 
 # Copy package files and install deps (works with or without lockfile)
 
