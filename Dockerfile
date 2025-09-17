@@ -1,8 +1,8 @@
 FROM apify/actor-python-playwright:3.11
 
 USER root
+WORKDIR /app
 
-# Create non-root user
 RUN useradd -m appuser
 
 # Install Python dependencies
@@ -10,10 +10,10 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -U pip \
  && pip install --no-cache-dir -r requirements.txt
 
-# Copy your source code
 COPY . ./
 
-RUN chown -R appuser:appuser ./
+RUN chown -R appuser:appuser /app
 USER appuser
 
-CMD ["python", "-m", "apify"]
+# Run your actor entrypoint
+CMD ["python", "main.py"]
