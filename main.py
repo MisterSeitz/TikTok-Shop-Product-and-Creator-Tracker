@@ -2,12 +2,12 @@
 import asyncio
 import json
 import os
-from typing import Any, Dict, List, Optional, Union
+import urllib.parse
+from typing import Any, Dict, List, Optional
 
 from apify import Actor, ProxyConfiguration
 from apify.storages import KeyValueStore
 
-# Playwright async API
 from playwright.async_api import async_playwright, Browser, Page
 
 # Labels
@@ -17,7 +17,8 @@ SELLER_LABEL = "SELLER"
 CATEGORY_LABEL = "CATEGORY"
 KEYWORD_LABEL = "KEYWORD"
 
-DEFAULT_TIMEOUTS = {"navigation": 30000}
+# default navigation timeout (ms) if none provided
+DEFAULT_NAVIGATION_TIMEOUT_MS = 30000
 
 
 class LimitsTracker:
@@ -29,39 +30,24 @@ class LimitsTracker:
 # Helpers
 # ---------------------
 def build_search_url_for_keyword(keyword: str, template: Optional[str] = None) -> str:
-    """
-    Build a search/listing URL from a keyword.
-    Default template points to a basic TikTok search; you may change this to the exact
-    TikTok Shop search URL you'd like to use.
-    """
     template = template or "https://www.tiktok.com/search?q={keyword}"
-    return template.format(keyword=keyword)
+    return template.format(keyword=urllib.parse.quote_plus(keyword))
 
 
 def normalize_start_items(raw_start_urls: Any) -> List[Dict[str, Any]]:
-    """
-    Accepts multiple input formats and normalizes to a list of dicts:
-    - ["https://..."] -> [{"url": "..."}]
-    - [{"url": "...", "userData": {...}}] -> unchanged
-    - "https://..." -> [{"url": "..."}]
-    """
-    out: List[Dict[str, Any]] = []
+    out = []
     if not raw_start_urls:
         return out
-
     if isinstance(raw_start_urls, str):
         out.append({"url": raw_start_urls})
         return out
-
     if isinstance(raw_start_urls, list):
         for item in raw_start_urls:
             if isinstance(item, str):
                 out.append({"url": item})
             elif isinstance(item, dict):
-                # Already a dict, ensure it has url
                 url = item.get("url")
                 if url:
-                    # preserve userData or label if provided
                     ud = item.get("userData") or {}
                     if "label" in item:
                         ud["label"] = item["label"]
@@ -70,22 +56,38 @@ def normalize_start_items(raw_start_urls: Any) -> List[Dict[str, Any]]:
 
 
 def choose_label_for_url(url: str, explicit_userdata: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Heuristic: if URL looks like a search/listing URL, label it LISTING; otherwise PRODUCT.
-    If userData already contains label, respect that.
-    """
     if explicit_userdata and explicit_userdata.get("label"):
         return explicit_userdata
-
     lower = url.lower()
-    if "search" in lower or "shop" in lower or "tag" in lower or "collections" in lower:
+    if "search" in lower or "tag" in lower or "shop" in lower or "collections" in lower:
         return {"label": LISTING_LABEL}
-    # default to PRODUCT for direct product links
     return {"label": PRODUCT_LABEL}
 
 
+def ms_timeouts_from_input(raw_timeouts: Dict[str, Any]) -> Dict[str, int]:
+    """
+    Convert various timeout formats in input to ms map used by code.
+    Accepts:
+      - navigationTimeoutSecs (seconds)
+      - requestTimeoutSecs (seconds)
+      - navigation (ms)
+    Returns dict with 'navigation' ms.
+    """
+    out = {}
+    if not isinstance(raw_timeouts, dict):
+        out["navigation"] = DEFAULT_NAVIGATION_TIMEOUT_MS
+        return out
+    if "navigation" in raw_timeouts:
+        out["navigation"] = int(raw_timeouts["navigation"])
+    elif "navigationTimeoutSecs" in raw_timeouts:
+        out["navigation"] = int(raw_timeouts["navigationTimeoutSecs"]) * 1000
+    else:
+        out["navigation"] = DEFAULT_NAVIGATION_TIMEOUT_MS
+    return out
+
+
 # ---------------------
-# Processing Functions (skeletons)
+# Processing functions (improved)
 # ---------------------
 async def process_product_task(
     browser: Browser,
@@ -97,20 +99,38 @@ async def process_product_task(
     include_creator_videos: bool,
     capture_screenshots: bool,
     notify_cfg: Dict[str, Any],
-    kv_store,
+    kv_store: KeyValueStore,
     log,
 ):
     url = req.get("url")
-    log.info(f"[PRODUCT] {url}")
-    # Example: open a page and take minimal action
+    log.info(f"[PRODUCT] Processing {url}")
     context = await browser.new_context()
     page: Page = await context.new_page()
     try:
-        await page.goto(url, timeout=timeouts.get("navigation", 30000))
-        # TODO: add your scraping for product page here
-        await asyncio.sleep(0.1)
+        await page.goto(url, timeout=timeouts.get("navigation", DEFAULT_NAVIGATION_TIMEOUT_MS))
+        await page.wait_for_load_state("networkidle")
+        # Basic extraction example: title + url
+        try:
+            title = await page.title()
+        except Exception:
+            title = None
+
+        # Example: push basic scraped object to default dataset
+        scraped = {"url": url, "title": title}
+        await Actor.push_data(scraped)
+        log.info(f"[PRODUCT] pushed data for {url}: {scraped}")
+        # Optionally save screenshot if requested
+        if capture_screenshots:
+            try:
+                screenshot = await page.screenshot()
+                # store screenshot in KV store under a safe key
+                key = f"screenshots/{urllib.parse.quote_plus(url)}.png"
+                await kv_store.set_value(key, screenshot, content_type="image/png")
+                log.info(f"[PRODUCT] saved screenshot for {url} as {key}")
+            except Exception as e:
+                log.warning(f"[PRODUCT] screenshot failed for {url}: {e}")
     except Exception as e:
-        log.warning(f"product task error for {url}: {e}")
+        log.warning(f"[PRODUCT] navigation/extract error for {url}: {e}")
     finally:
         await page.close()
         await context.close()
@@ -126,27 +146,71 @@ async def process_listing_task(
     request_queue,
     limits: LimitsTracker,
     log,
+    kv_store: KeyValueStore,
+    debug: bool = False,
 ):
     url = req.get("url")
-    log.info(f"[LISTING] {url}")
+    log.info(f"[LISTING] Processing {url}")
     context = await browser.new_context()
     page: Page = await context.new_page()
+    discovered = 0
     try:
-        await page.goto(url, timeout=timeouts.get("navigation", 30000))
-        # TODO: replace the selector with the actual one that yields product links on listing/search pages.
-        # Example pseudo-code showing how to enqueue discovered product links:
-        #
-        # anchors = await page.query_selector_all("a[href*='/product/'], a.product-link")
-        # for a in anchors:
-        #     href = await a.get_attribute("href")
-        #     if href:
-        #         full = page.url.rstrip("/") + href if href.startswith("/") else href
-        #         await request_queue.add_request({"url": full, "userData": {"label": PRODUCT_LABEL}})
-        #
-        # For now we simulate discovering nothing; implement real selectors for TikTok Shop.
-        await asyncio.sleep(0.1)
+        await page.goto(url, timeout=timeouts.get("navigation", DEFAULT_NAVIGATION_TIMEOUT_MS))
+        await page.wait_for_load_state("networkidle")
+
+        # Heuristic: collect anchors and filter by patterns commonly seen in product links.
+        anchors = await page.query_selector_all("a")
+        hrefs = []
+        for a in anchors:
+            try:
+                href = await a.get_attribute("href")
+            except Exception:
+                href = None
+            if not href:
+                continue
+            href = href.strip()
+            # Normalize to absolute URL
+            if href.startswith("/"):
+                href = urllib.parse.urljoin(page.url, href)
+            # Skip JS anchors
+            if href.startswith("javascript:") or href.startswith("#"):
+                continue
+            hrefs.append(href)
+
+        # Basic filtering: product-like patterns — adjust for actual TikTok Shop structure
+        product_candidates = []
+        for h in hrefs:
+            hl = h.lower()
+            # common heuristics (you may refine)
+            if "/product/" in hl or "/item/" in hl or "/shop/" in hl or "/video/" in hl or "tiktok.com/@" in hl:
+                product_candidates.append(h)
+
+        # remove duplicates and limit
+        unique = list(dict.fromkeys(product_candidates))
+        for candidate in unique:
+            # Skip if already in queue: SDK may de-dupe but we attempt to add
+            try:
+                await request_queue.add_request({"url": candidate, "userData": {"label": PRODUCT_LABEL}})
+                discovered += 1
+                log.info(f"[LISTING] queued product: {candidate}")
+            except Exception as e:
+                log.debug(f"[LISTING] add_request failed for {candidate}: {e}")
+
+        if discovered == 0:
+            # Debug: save listing HTML so you can inspect what the page actually contains (selector tuning)
+            if debug:
+                try:
+                    page_html = await page.content()
+                    key = f"debug/listing-{urllib.parse.quote_plus(url)}.html"
+                    await kv_store.set_value(key, page_html, content_type="text/html")
+                    log.info(f"[LISTING] saved listing HTML to kv://{key} for inspection")
+                except Exception as e:
+                    log.warning(f"[LISTING] failed saving debug HTML for {url}: {e}")
+
+            log.info(f"[LISTING] no product candidates discovered on {url}. Found {len(hrefs)} anchors, {len(product_candidates)} product-like candidates.")
+
     except Exception as e:
-        log.warning(f"listing task error for {url}: {e}")
+        log.warning(f"[LISTING] navigation/extract error for {url}: {e}")
     finally:
         await page.close()
         await context.close()
@@ -166,9 +230,10 @@ async def worker_loop(
     include_creator_videos: bool,
     capture_screenshots: bool,
     notify_cfg: Dict[str, Any],
-    kv_store,
+    kv_store: KeyValueStore,
     limits: LimitsTracker,
     log,
+    debug: bool,
 ):
     log.info(f"Worker {worker_id} started")
     while True:
@@ -177,7 +242,7 @@ async def worker_loop(
             log.info(f"Worker {worker_id}: no request fetched, exiting")
             break
 
-        # depending on SDK, req might be a Request-like object or dict
+        # support both dict-like request and SDK Request objects
         try:
             url = req.get("url") if isinstance(req, dict) else getattr(req, "url", None)
         except Exception:
@@ -197,7 +262,7 @@ async def worker_loop(
             if label == PRODUCT_LABEL:
                 await process_product_task(
                     browser,
-                    req,
+                    req if isinstance(req, dict) else {"url": url},
                     proxy_url,
                     accept_language,
                     region,
@@ -208,10 +273,11 @@ async def worker_loop(
                     kv_store,
                     log,
                 )
-            elif label in (LISTING_LABEL, SELLER_LABEL, CATEGORY_LABEL, KEYWORD_LABEL):
+            else:
+                # treat everything else as LISTING for safety
                 await process_listing_task(
                     browser,
-                    req,
+                    req if isinstance(req, dict) else {"url": url},
                     proxy_url,
                     accept_language,
                     region,
@@ -219,33 +285,17 @@ async def worker_loop(
                     request_queue,
                     limits,
                     log,
-                )
-            else:
-                # default
-                await process_product_task(
-                    browser,
-                    {**(req if isinstance(req, dict) else {}), "userData": {"label": PRODUCT_LABEL}},
-                    proxy_url,
-                    accept_language,
-                    region,
-                    timeouts,
-                    include_creator_videos,
-                    capture_screenshots,
-                    notify_cfg,
                     kv_store,
-                    log,
+                    debug,
                 )
 
-            # mark handled: SDK may accept dict or request object
+            # Mark handled (SDK might accept dict or request object)
             try:
                 await request_queue.mark_request_as_handled(req)
             except Exception:
-                # fallback: if request_queue expects a request id or dict, adjust accordingly
-                log.debug("mark_request_as_handled failed; request may already be handled or method signature differs.")
+                log.debug("mark_request_as_handled failed; request may already be handled or signature differs.")
         except Exception as e:
             log.warning(f"Worker {worker_id}: error processing {url} — {e}")
-            # Optionally re-add to queue for retry:
-            # await request_queue.add_request(req)
 
 
 # ---------------------
@@ -255,40 +305,44 @@ async def main():
     async with Actor:
         log = Actor.log
         input_data = await Actor.get_input() or {}
-        # debug: log entire input (truncated for safety)
+
+        # debug dump of input
         try:
             log.info("Actor input: " + json.dumps(input_data))
         except Exception:
             log.info("Actor input (non-jsonable): " + str(input_data))
 
-        # Accept either startUrls or keywords
-        raw_start = input_data.get("startUrls", [])
-        keywords = input_data.get("keywords") or input_data.get("searchKeywords") or input_data.get("keyword")
+        # collect start URLs and keyword-based searches
+        raw_start = input_data.get("startUrls", []) or input_data.get("start_urls", [])
+        keywords = input_data.get("keywords") or input_data.get("keyword") or input_data.get("searchKeywords")
+        search_template = input_data.get("searchUrlTemplate")
 
-        # If keywords provided, build search/listing URLs
-        search_template = input_data.get("searchUrlTemplate")  # optional override
         start_items = normalize_start_items(raw_start)
-
         if keywords:
             if isinstance(keywords, str):
                 keywords = [keywords]
             for kw in keywords:
-                url = build_search_url_for_keyword(kw, template=search_template)
-                start_items.append({"url": url, "userData": {"label": LISTING_LABEL}})
+                start_items.append({"url": build_search_url_for_keyword(kw, template=search_template), "userData": {"label": LISTING_LABEL}})
 
-        # If nothing to start with, warn and exit
+        # also allow explicit productUrls in input
+        for p in input_data.get("productUrls", []) or []:
+            start_items.append({"url": p, "userData": {"label": PRODUCT_LABEL}})
+
         if not start_items:
-            log.warning("No start URLs or keywords provided. Nothing to queue.")
+            log.warning("No start URLs, keywords or productUrls provided — nothing to queue.")
             return
+
+        # timeouts conversion
+        timeouts = ms_timeouts_from_input(input_data.get("timeouts", {}))
 
         accept_language = input_data.get("acceptLanguage", "en-US")
         region = input_data.get("region", "US")
         include_creator_videos = input_data.get("includeCreatorVideos", False)
         capture_screenshots = input_data.get("captureScreenshots", False)
-        notify_cfg = input_data.get("notifyCfg", {})
-        timeouts = input_data.get("timeouts", DEFAULT_TIMEOUTS)
+        notify_cfg = input_data.get("notify", {}) or input_data.get("notifyCfg", {})
+        debug = bool(input_data.get("debug", False))
 
-        # Proxy setup
+        # proxy
         proxy_configuration = None
         if input_data.get("useProxy", False):
             proxy_configuration = await ProxyConfiguration.create({"useApifyProxy": True})
@@ -296,28 +350,25 @@ async def main():
         kv_store = await KeyValueStore.open()
         request_queue = await Actor.open_request_queue()
 
-        # Add normalized start items into the queue (respect label if present)
+        # enqueue start items
         added = 0
         for item in start_items:
             url = item.get("url")
-            userData = item.get("userData", {})
-            # apply heuristic label if userData empty
+            userData = item.get("userData", {}) or {}
             if not userData.get("label"):
                 userData = choose_label_for_url(url, userData)
             await request_queue.add_request({"url": url, "userData": userData})
-            added += 1
             log.info(f"Queued start URL: {url} (label={userData.get('label')})")
+            added += 1
 
         log.info(f"Added {added} start requests to the queue.")
 
         limits = LimitsTracker()
 
-        # Launch Playwright
-        log.info("Launching Playwright...")
+        # launch Playwright
         async with async_playwright() as playwright:
-            browser = await playwright.chromium.launch(headless=Actor.config.headless, args=["--disable-gpu"])
-
-            worker_count = int(input_data.get("concurrency", 3))
+            browser = await playwright.chromium.launch(headless=Actor.config.headless, args=["--no-sandbox", "--disable-dev-shm-usage"])
+            worker_count = int(input_data.get("maxConcurrency", input_data.get("concurrency", 3)))
             workers = [
                 worker_loop(
                     i,
@@ -333,10 +384,10 @@ async def main():
                     kv_store,
                     limits,
                     log,
+                    debug,
                 )
                 for i in range(worker_count)
             ]
-
             await asyncio.gather(*workers)
             await browser.close()
 
