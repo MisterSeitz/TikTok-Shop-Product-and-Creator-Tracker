@@ -23,3 +23,4 @@ USER myuser
 # Run the actor
 
 CMD ["node", "main.js"]
+CMD npm start
