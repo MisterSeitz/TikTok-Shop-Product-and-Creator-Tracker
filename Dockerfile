@@ -11,8 +11,6 @@ RUN pip install --no-cache-dir -U pip \
 # Copy your source code into the container
 COPY . ./
 
-# Switch back to non-root user (the base image already defines one)
-USER apify
-
 # Run your actor script
 CMD ["python", "main.py"]
+
