@@ -1,7 +1,7 @@
-Use Apify base image with Node 20, Chrome, and fonts
+# Use Apify base image with Node 20, Chrome, and fonts
 
 FROM apify/actor-node-puppeteer-chrome:20
-Install as root to avoid EACCES during npm install
+# Install as root to avoid EACCES during npm install
 
 USER root
 
