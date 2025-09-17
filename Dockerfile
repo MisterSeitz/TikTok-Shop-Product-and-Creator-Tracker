@@ -1,20 +1,21 @@
-# Use the Playwright-enabled Python image
+# Use the Playwright-enabled Python image from Apify
 FROM apify/actor-python-playwright:3.11
 
-# Install as root
+# Work as root for setup
 USER root
 WORKDIR /app
 
-# Install dependencies
+# Install Python dependencies and fix permissions in one layer to reduce size
 COPY requirements.txt ./
-RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -U pip \
+ && pip install --no-cache-dir -r requirements.txt
 
-# Copy source
+# Copy the rest of your source code
 COPY . ./
 
-# Fix permissions and drop privileges
-RUN chown -R myuser:myuser /app
-USER myuser
+# Set ownership and switch to the default 'apify' non-root user
+RUN chown -R apify:apify /app
+USER apify
 
-# Start the Apify Python runtime (don’t use any xvfb entrypoint here)
+# Start the Apify Python runtime
 CMD ["python", "-m", "apify"]
