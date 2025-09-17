@@ -8,7 +8,7 @@
 "start": "node main.js",
 "test-run": "APIFY_LOCAL_STORAGE_DIR=./apify_storage node main.js"
 },
-"author": "Your Name",
+"author": "Byseitz",
 "license": "MIT",
 "engines": {
 "node": ">=20"
