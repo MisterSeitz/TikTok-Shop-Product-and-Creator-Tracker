@@ -20,5 +20,8 @@ COPY . ./
 RUN chown -R appuser:appuser /app
 USER appuser
 
+# Restore entrypoint from base image so xvfb works
+ENTRYPOINT ["/usr/local/bin/xvfb-entrypoint.sh"]
+
 # Start the Apify Python runtime
 CMD ["python", "-m", "apify"]
