@@ -1,6 +1,6 @@
 {
 "name": "tiktok-shop-product-tracker",
-"version": "1.0.6",
+"version": "1.0.7",
 "description": "Apify actor that tracks TikTok Shop products with price/stock/rating changes and optional notifications.",
 "type": "commonjs",
 "main": "main.js",
@@ -17,6 +17,6 @@
 "apify": "^3.4.5",
 "crawlee": "^3.14.1",
 "got-scraping": "^4.0.3",
-"puppeteer": "^22.15.0"
+"puppeteer": "^24.10.2"
 }
 }
