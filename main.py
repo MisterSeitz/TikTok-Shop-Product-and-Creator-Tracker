@@ -3,6 +3,14 @@ import asyncio
 import json
 import urllib.parse
 from typing import Any, Dict, List, Optional
+import re
+
+def slugify_tiktok_category(cat: str) -> str:
+    cat = cat.lower()
+    cat = cat.replace("&", "and")
+    cat = re.sub(r"[^a-z0-9]+", "-", cat)
+    return cat.strip("-")
+
 
 from apify import Actor, ProxyConfiguration
 from apify.storages import KeyValueStore
@@ -300,10 +308,12 @@ async def main():
         category_urls = input_data.get("categoryUrls") or []
 
         for cat in tiktok_categories:
+            slug = slugify_tiktok_category(cat)
             start_items.append({
-                "url": f"https://www.tiktok.com/tag/{urllib.parse.quote_plus(cat)}",
+                "url": f"https://www.tiktok.com/tag/{slug}",
                 "userData": {"label": LISTING_LABEL}
             })
+
 
         for url in category_urls:
             start_items.append({
