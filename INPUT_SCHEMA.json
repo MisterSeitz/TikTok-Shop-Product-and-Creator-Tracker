@@ -28,14 +28,49 @@
       "items": { "type": "string" },
       "default": []
     },
+
+    "tiktokCategories": {
+      "title": "TikTok Categories",
+      "type": "array",
+      "description": "Select one or more TikTok Shop categories (optional).",
+      "editor": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "beauty",
+          "fashion",
+          "electronics",
+          "home",
+          "pets",
+          "sports",
+          "food",
+          "baby",
+          "health"
+        ],
+        "enumTitles": [
+          "Beauty & Personal Care",
+          "Fashion & Accessories",
+          "Electronics & Gadgets",
+          "Home & Living",
+          "Pet Supplies",
+          "Sports & Outdoors",
+          "Food & Beverages",
+          "Baby & Kids",
+          "Health & Wellness"
+        ]
+      },
+      "default": []
+    },
+
     "categoryUrls": {
       "title": "Category URLs",
       "type": "array",
-      "description": "TikTok Shop category or listing URLs to discover products.",
+      "description": "Paste TikTok Shop category URLs manually (optional).",
       "editor": "stringList",
       "items": { "type": "string" },
       "default": []
     },
+
     "region": {
       "title": "Region",
       "type": "string",
@@ -54,6 +89,7 @@
       ],
       "default": "US"
     },
+
     "acceptLanguage": {
       "title": "Accept-Language header",
       "type": "string",
@@ -61,6 +97,7 @@
       "editor": "textfield",
       "default": "en-US,en;q=0.9"
     },
+
     "limits": {
       "title": "Limits",
       "type": "object",
@@ -88,6 +125,7 @@
       },
       "default": {}
     },
+
     "maxConcurrency": {
       "title": "Max concurrency",
       "type": "integer",
@@ -96,6 +134,7 @@
       "minimum": 1,
       "maximum": 50
     },
+
     "timeouts": {
       "title": "Timeouts",
       "type": "object",
@@ -122,18 +161,21 @@
         "requestTimeoutSecs": 30
       }
     },
+
     "includeCreatorVideos": {
       "title": "Include creator-linked videos",
       "type": "boolean",
       "description": "Attempt to collect creator-linked videos and basic engagement stats.",
       "default": true
     },
+
     "captureScreenshots": {
       "title": "Capture screenshots",
       "type": "boolean",
       "description": "Capture a full-page product screenshot and save to the default key-value store.",
       "default": false
     },
+
     "notify": {
       "title": "Notifications",
       "type": "object",
@@ -166,12 +208,14 @@
         "onlyOnChange": true
       }
     },
+
     "proxyConfiguration": {
       "title": "Proxy configuration",
       "type": "object",
       "description": "Use Apify Proxy or custom proxies. Regional proxies are recommended to match the selected region.",
       "editor": "proxy"
     },
+
     "debug": {
       "title": "Debug mode",
       "type": "boolean",
