@@ -1,18 +1,21 @@
-# Use Apify base image with Node 20, Chrome, and fonts
+Use Apify base image with Node 20, Chrome, and fonts
 
 FROM apify/actor-node-puppeteer-chrome:20
-# Install dependencies as root to avoid EACCES during npm install
+Install as root to avoid EACCES during npm install
 
 USER root
-# Set working directory
 
+# Workdir
 WORKDIR /usr/src/app
-# Copy package files (works with or without a lockfile)
+
+# Use system Chrome from the image and skip Chromium download for Puppeteer
+ENV PUPPETEER_SKIP_DOWNLOAD=true 
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+
+# Copy package files and install deps (works with or without lockfile)
 
 COPY package*.json ./
-# Install dependencies without multiline 'if' to avoid parser issues
-
-RUN npm config set fund false && npm config set audit false && if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+RUN npm config set fund false && npm config set audit false && (test -f package-lock.json && npm ci || npm install --no-audit --no-fund)
 # Copy the rest of the source
 
 COPY . ./
@@ -22,5 +25,5 @@ RUN chown -R myuser:myuser /usr/src/app
 USER myuser
 # Run the actor
 
-CMD ["node", "main.js"]
 CMD npm start
+CMD ["node", "main.js"]
