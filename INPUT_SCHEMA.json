@@ -49,16 +49,7 @@
 "type": "string",
 "description": "Preferred TikTok Shop market locale. Used for Accept-Language and regional hints.",
 "editor": "select",
-"enum": [
-"US",
-"GB",
-"SG",
-"MY",
-"TH",
-"VN",
-"PH",
-"ID"
-],
+"enum": ["US", "GB", "SG", "MY", "TH", "VN", "PH", "ID"],
 "enumTitles": [
 "United States",
 "United Kingdom",
@@ -75,6 +66,7 @@
 "title": "Accept-Language header",
 "type": "string",
 "description": "Custom Accept-Language header to hint region and language in the browser context.",
+"editor": "text",
 "default": "en-US,en;q=0.9"
 },
 "limits": {
