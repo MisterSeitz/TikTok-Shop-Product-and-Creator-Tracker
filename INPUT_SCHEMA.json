@@ -1,5 +1,5 @@
 {
-"title": "TikTok Shop Product Tracker",
+"title": "TikTok Shop Product And Creator Tracker",
 "description": "Track TikTok Shop products for metadata, price, availability, ratings, images, and creator-linked videos. Detect changes across runs and optionally send notifications.",
 "type": "object",
 "schemaVersion": 1,
@@ -104,14 +104,14 @@
 "properties": {
 "navigationTimeoutSecs": {
 "title": "Navigation timeout (secs)",
-"type": "number",
+"type": "integer",
 "default": 25,
 "minimum": 5,
 "maximum": 120
 },
 "requestTimeoutSecs": {
 "title": "Request timeout (secs)",
-"type": "number",
+"type": "integer",
 "default": 30,
 "minimum": 5,
 "maximum": 120
