@@ -1,7 +1,7 @@
 {
 "actorSpecification": 1,
-"name": "tiktok-shop-product-tracker",
-"title": "TikTok Shop Product Tracker",
+"name": "tiktok-shop-product-creator-tracker",
+"title": "TikTok Shop Product & Creator Tracker",
 "description": "Track TikTok Shop products for metadata, price, availability, ratings, images, and creator-linked videos. Detect changes across runs and optionally send notifications.",
 "version": "0.1.0",
 "buildTag": "latest",
