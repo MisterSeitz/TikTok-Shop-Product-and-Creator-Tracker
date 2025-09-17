@@ -1,27 +1,20 @@
-# Use Apify Python + Playwright base image with Chromium preinstalled
+# Use the Playwright-enabled Python image
 FROM apify/actor-python-playwright:3.11
 
-# Environment for reliable runtime and smaller image size
-ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_ROOT_USER_ACTION=ignore \
-    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-
-# Create app directory
+# Install as root
+USER root
 WORKDIR /app
 
-# Install Python dependencies first (leverages Docker layer caching)
-COPY requirements.txt /app/requirements.txt
-RUN python -m pip install --upgrade pip && pip install -r /app/requirements.txt
+# Install dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the project files
-COPY . /app
+# Copy source
+COPY . ./
 
-# Create non-root user and fix permissions
-RUN adduser --disabled-password --gecos "" myuser && chown -R myuser:myuser /app
-
-# Drop to non-root for runtime
+# Fix permissions and drop privileges
+RUN chown -R myuser:myuser /app
 USER myuser
 
-# Start the Apify actor (runs main.py via the Apify Python SDK)
+# Start the Apify Python runtime (don’t use any xvfb entrypoint here)
 CMD ["python", "-m", "apify"]
